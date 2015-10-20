@@ -185,7 +185,7 @@ void notify() {
   }
 
   for (int i = 0 ; i < NR_DIGITAL_PINS; i++) {
-    analog_send(digital_values[i], digital_terminals_ids[i]);
+    digital_send(digital_values[i], digital_terminals_ids[i]);
   }
 }
 
