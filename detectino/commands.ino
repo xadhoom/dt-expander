@@ -78,7 +78,7 @@ void handle_readd(unsigned int subcommand, unsigned int src_node_id) {
     /* read all */
     for (int i = 0; i < NR_DIGITAL_PINS; i++) {
       CAN_Payload payload = init_sensor_payload(digital_values[i]);
-      set_aterminal_id(digital_terminals_ids[i], &payload);
+      set_dterminal_id(digital_terminals_ids[i], &payload);
       send_data_to_node(src_node_id, (CMD_EVENT << 8) | SC_EVENT_READ_ALL, 8, payload);
     }
     return;
