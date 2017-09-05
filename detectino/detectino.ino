@@ -97,7 +97,7 @@ void setup_checkAlert() {
 }
 
 void setup_notify() {
-  t_notify.every(10000, notify);
+  t_notify.every(1000, notify);
 }
 
 void setup_id() {
