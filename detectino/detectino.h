@@ -57,7 +57,7 @@ struct CAN_Payload {
 
 /* list of IDs sent on can for each terminal */
 const unsigned int analog_terminals_ids[NR_ANALOG_PINS] = {1, 2, 3, 4, 5, 6, 7, 8};
-const unsigned int digital_terminals_ids[NR_DIGITAL_PINS] = {1, 2, 3};
+const unsigned int digital_terminals_ids[NR_DIGITAL_PINS] = {9, 10, 11};
 
 /*
  * PINs used for id (dip switch)
