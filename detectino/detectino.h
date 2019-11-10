@@ -53,10 +53,10 @@ struct CAN_Payload {
 };
 
 #define NR_DIGITAL_PINS 3
-#define NR_ANALOG_PINS 8
+#define NR_ANALOG_PINS 16
 
 /* list of IDs sent on can for each terminal */
-const unsigned int analog_terminals_ids[NR_ANALOG_PINS] = {1, 2, 3, 4, 5, 6, 7, 8};
+const unsigned int analog_terminals_ids[NR_ANALOG_PINS] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
 const unsigned int digital_terminals_ids[NR_DIGITAL_PINS] = {9, 10, 11};
 
 /*
