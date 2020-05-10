@@ -12,9 +12,6 @@
 unsigned int analog_values[NR_ANALOG_PINS];
 unsigned int analog_old_values[NR_ANALOG_PINS];
 
-int digital_values[NR_DIGITAL_PINS];
-int digital_old_values[NR_DIGITAL_PINS];
-
 /*
  * ALIVE led
  */
@@ -30,7 +27,7 @@ FilterOnePole analog_filters[NR_ANALOG_PINS];
  * CAN INIT STUFF
  */
 unsigned long my_can_id;
-MCP_CAN CAN(10); // Set CS to pin 10
+MCP_CAN CAN(CAN_CS_PIN);
 
 /*
  * Timers
@@ -54,7 +51,7 @@ START_INIT:
   {
     Serial.println(F("CAN BUS Shield init fail"));
     Serial.println(F("Init CAN BUS Shield again"));
-    delay(100);
+    delay(1000);
     goto START_INIT;
   }
 
@@ -69,6 +66,7 @@ START_NODE_ID:
 
   setup_alive();
   setup_inputs();
+  setup_outputs();
   setup_analogReads();
   setup_checkAlert();
   setup_notify();
@@ -112,11 +110,16 @@ void setup_inputs() {
     analog_values[i] = 0;
     analog_old_values[i] = 0;
   }
-  for (int i = 0; i < NR_DIGITAL_PINS; i++) {
-    /* use negative, different values to force sending status on reset */
-    digital_values[i] = -1;
-    digital_old_values[i] = -2;
-    pinMode(digital_terminals[i], INPUT);
+}
+
+void setup_outputs() {
+  for (int i = 0; i < RELAYS_NR; i++) {
+    pinMode(relay_pins[i], OUTPUT);
+    digitalWrite(relay_pins[i], LOW);
+  }
+  for (int i = 0; i < OC_PINS_NR; i++) {
+    pinMode(oc_pins[i], OUTPUT);
+    digitalWrite(oc_pins[i], LOW);
   }
 }
 
@@ -144,11 +147,6 @@ void read_sensors() {
     //analog_values[i] = analog_filters[i].output();
     analog_values[i] = analogRead(analog_terminals[i]);
   }
-
-  for (int i = 0; i < NR_DIGITAL_PINS; i++) {
-    digital_old_values[i] = digital_values[i];
-    digital_values[i] = digitalRead(digital_terminals[i]);
-  }
 }
 
 int acmp(unsigned int a, unsigned int b) {
@@ -169,12 +167,10 @@ void check_alert() {
   for (int i = 0; i < NR_ANALOG_PINS; i++) {
     if ( acmp(analog_values[i], analog_old_values[i]) ) {
       analog_send(analog_values[i], analog_terminals_ids[i]);
-    }
-  }
-
-  for (int i = 0; i < NR_DIGITAL_PINS; i++) {
-    if ( digital_values[i] != digital_old_values[i] ) {
-      digital_send(digital_values[i], digital_terminals_ids[i]);
+      Serial.print("Alert! sending value ");
+      Serial.print(analog_values[i], DEC);
+      Serial.print(" from port ");
+      Serial.println(i, DEC);
     }
   }
 }
@@ -183,41 +179,6 @@ void notify() {
   for (int i = 0 ; i < NR_ANALOG_PINS; i++) {
     analog_send(analog_values[i], analog_terminals_ids[i]);
   }
-
-  for (int i = 0 ; i < NR_DIGITAL_PINS; i++) {
-    digital_send(digital_values[i], digital_terminals_ids[i]);
-  }
-}
-
-void digital_send(int value, int id) {
-  CAN_Payload payload = init_sensor_payload(value);
-  set_dterminal_id(id, &payload);
-  send_data(8, payload);
-}
-
-void analog_send(int value, int id) {
-  CAN_Payload payload = init_sensor_payload(value);
-  set_aterminal_id(id, &payload);
-  send_data(8, payload);
-}
-
-CAN_Payload init_sensor_payload(int value) {
-  CAN_Payload payload = {0, 0, 0, 0, 0, 0, 0, 0};
-  write_value_data(value, &payload);
-  return payload;
-}
-
-void write_value_data(int value, CAN_Payload *payload) {
-  payload->data[VAL_BYTEMS] = (value >> 8) & 0xFF;
-  payload->data[VAL_BYTELS] = value & 0xFF;
-}
-
-void set_aterminal_id(int id, CAN_Payload *payload) {
-  payload->data[AT_BYTE] = id;
-}
-
-void set_dterminal_id(int id, CAN_Payload *payload) {
-  payload->data[DT_BYTE] = id;
 }
 
 void loop()
@@ -228,4 +189,3 @@ void loop()
   t_notify.update();
   read_from_bus();
 }
-
